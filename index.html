@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Be My Valentine?</title>
+    <link href="https://fonts.googleapis.com/css2?family=Indie+Flower&family=Fredoka+One&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #ff4d6d;
+            --secondary: #ff8fa3;
+            --bg: #fff0f3;
+            --text: #590d22;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Indie Flower', cursive;
+            background-color: var(--bg);
+            color: var(--text);
+        }
+
+        /* Floating Background Hearts */
+        .bg-hearts {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .bg-heart {
+            position: absolute;
+            bottom: -50px;
+            color: rgba(255, 77, 109, 0.4);
+            font-size: 2rem;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(0.5) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.8; }
+            100% { transform: translateY(-120vh) scale(1.2) rotate(360deg); opacity: 0; }
+        }
+
+        /* Main Container */
+        .container {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            text-align: center;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        h1 {
+            font-family: 'Fredoka One', cursive;
+            font-size: clamp(2rem, 5vw, 3rem);
+            margin-bottom: 20px;
+            color: var(--primary);
+            text-shadow: 2px 2px 0px rgba(255, 255, 255, 0.5);
+            pointer-events: none;
+        }
+
+        .cute-visual {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            width: 100%;
+            height: 100px;
+        }
+
+        button {
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-family: 'Fredoka One', cursive;
+            transition: transform 0.2s ease, width 0.2s ease, height 0.2s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            white-space: nowrap;
+        }
+
+        #yesBtn {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px 40px;
+            font-size: 1.5rem;
+            z-index: 20;
+            animation: pulse-shadow 1.5s infinite;
+            transform-origin: center center;
+        }
+
+        #noBtn {
+            background-color: white;
+            color: var(--text);
+            padding: 10px 20px;
+            font-size: 1rem;
+            border: 2px solid var(--secondary);
+            position: relative; 
+            z-index: 19;
+            transition: all 0.1s ease;
+        }
+
+        @keyframes pulse-shadow {
+            0% { box-shadow: 0 0 0 0 rgba(255, 77, 109, 0.7); }
+            70% { box-shadow: 0 0 0 20px rgba(255, 77, 109, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 77, 109, 0); }
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+            40% {transform: translateY(-20px);}
+            60% {transform: translateY(-10px);}
+        }
+
+        /* Success Screen */
+        #successContainer {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 100;
+            background: radial-gradient(circle, #fff0f3 0%, #ffc2d1 100%);
+        }
+
+        /* FIX: Z-index set to 2 to ensure text sits ON TOP of the canvas.
+           Position relative is needed for z-index to apply.
+        */
+        .big-heart {
+            font-size: 8rem;
+            color: var(--primary);
+            animation: heartbeat 0.8s infinite;
+            position: relative;
+            z-index: 2; 
+        }
+
+        .success-text {
+            font-family: 'Fredoka One', cursive;
+            font-size: 3rem;
+            color: var(--primary);
+            margin-top: 20px;
+            text-align: center;
+            animation: bounce 1s infinite;
+            position: relative;
+            z-index: 2;
+        }
+
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            25% { transform: scale(1.3); }
+            40% { transform: scale(1); }
+            60% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        /* Canvas is Z-index 1, so it stays BEHIND the text */
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-hearts" id="bgHearts"></div>
+
+    <div class="container" id="mainContainer">
+        <div class="cute-visual">🥺👉👈</div>
+        <h1 id="question">Will you be my valentine?</h1>
+        
+        <div class="buttons">
+            <button id="yesBtn">YES</button>
+            <button id="noBtn">no</button>
+        </div>
+    </div>
+
+    <div id="successContainer">
+        <div class="big-heart">💖</div>
+        <div class="success-text">OMGG YAYYYY!!!</div>
+        <canvas id="fireworksCanvas"></canvas>
+    </div>
+
+    <script>
+        const yesBtn = document.getElementById('yesBtn');
+        const noBtn = document.getElementById('noBtn');
+        const mainContainer = document.getElementById('mainContainer');
+        const successContainer = document.getElementById('successContainer');
+        const question = document.getElementById('question');
+        
+        let iteration = 0;
+        const maxIterations = 8;
+        let yesScale = 1;
+        
+        // --- Background Hearts ---
+        function createHearts() {
+            const container = document.getElementById('bgHearts');
+            const heartCount = 25;
+            for (let i = 0; i < heartCount; i++) {
+                const heart = document.createElement('div');
+                heart.classList.add('bg-heart');
+                heart.innerHTML = Math.random() > 0.5 ? '❤️' : '💕';
+                heart.style.left = Math.random() * 100 + 'vw';
+                const duration = Math.random() * 10 + 5;
+                heart.style.animation = `floatUp ${duration}s linear infinite`;
+                heart.style.animationDelay = (Math.random() * 10) + 's';
+                container.appendChild(heart);
+            }
+        }
+        createHearts();
+
+        // --- Interaction Logic ---
+        function runAway() {
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            const noRect = noBtn.getBoundingClientRect();
+            const yesRect = yesBtn.getBoundingClientRect();
+
+            let newX, newY, overlap;
+            let attempts = 0;
+            
+            do {
+                overlap = false;
+                const maxLeft = viewportWidth - noRect.width - 20;
+                const maxTop = viewportHeight - noRect.height - 20;
+                newX = Math.random() * maxLeft;
+                newY = Math.random() * maxTop;
+                newX = Math.max(20, newX);
+                newY = Math.max(20, newY);
+
+                if (
+                    newX < yesRect.right + 20 &&
+                    newX + noRect.width > yesRect.left - 20 &&
+                    newY < yesRect.bottom + 20 &&
+                    newY + noRect.height > yesRect.top - 20
+                ) {
+                    overlap = true;
+                }
+                attempts++;
+            } while (overlap && attempts < 50);
+
+            noBtn.style.position = 'fixed';
+            noBtn.style.left = newX + 'px';
+            noBtn.style.top = newY + 'px';
+
+            // Grow YES button
+            iteration++;
+            if (iteration < maxIterations) {
+                yesScale += 0.5; 
+                yesBtn.style.transform = `scale(${yesScale})`;
+                
+                const noScale = Math.max(0.2, 1 - (iteration * 0.15));
+                noBtn.style.transform = `scale(${noScale})`;
+                
+                const texts = ["No", "Pls?", "Why?", "💔", "Wait-", "Stop", "Error"];
+                noBtn.innerText = texts[iteration % texts.length] || "no";
+            } else {
+                noBtn.style.display = 'none';
+                question.innerText = "OKAY YOU HAVE TO SAY YES NOW!";
+                yesBtn.style.transform = "scale(8)";
+                yesBtn.style.position = 'fixed';
+                yesBtn.style.zIndex = 1000;
+                yesBtn.style.left = "50%";
+                yesBtn.style.top = "50%";
+                yesBtn.style.marginLeft = -yesBtn.offsetWidth/2 + "px";
+                yesBtn.style.marginTop = -yesBtn.offsetHeight/2 + "px";
+            }
+        }
+
+        // --- Event Listeners ---
+        noBtn.addEventListener('mouseover', runAway);
+        noBtn.addEventListener('touchstart', (e) => { e.preventDefault(); runAway(); });
+        noBtn.addEventListener('click', (e) => { e.preventDefault(); runAway(); });
+
+        yesBtn.addEventListener('click', () => {
+            mainContainer.style.display = 'none';
+            successContainer.style.display = 'flex';
+            
+            startFireworks();
+
+            setTimeout(() => {
+                const recipient = "interestingali.1@gmail.com";
+                const subject = encodeURIComponent("I SAID YES <33");
+                const body = encodeURIComponent("Happy Valentine's Day!! 💖\n\nI'm so excited! You are officially my Valentine now! (No take backs!)\n\nSee you soon! 🥰");
+                window.location.href = `mailto:${recipient}?subject=${subject}&body=${body}`;
+            }, 1000);
+        });
+
+        // --- Fireworks ---
+        function startFireworks() {
+            const canvas = document.getElementById('fireworksCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            let particles = [];
+            
+            function createParticle(x, y, color) {
+                return {
+                    x: x, y: y, color: color,
+                    velocity: { x: (Math.random() - 0.5) * 10, y: (Math.random() - 0.5) * 10 },
+                    alpha: 1, decay: 0.015
+                };
+            }
+
+            function firework() {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height * 0.6;
+                const colors = ['#ff0040', '#ff0080', '#ff80bf', '#ffffff'];
+                for (let i = 0; i < 40; i++) {
+                    particles.push(createParticle(x, y, colors[Math.floor(Math.random() * colors.length)]));
+                }
+            }
+
+            function animate() {
+                requestAnimationFrame(animate);
+                // "fade" effect to create trails
+                ctx.fillStyle = 'rgba(255, 240, 243, 0.2)'; 
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                particles.forEach((p, index) => {
+                    p.velocity.y += 0.05;
+                    p.x += p.velocity.x;
+                    p.y += p.velocity.y;
+                    p.alpha -= p.decay;
+                    ctx.globalAlpha = p.alpha;
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                    if (p.alpha <= 0) particles.splice(index, 1);
+                });
+
+                if (Math.random() < 0.08) firework();
+            }
+            firework();
+            animate();
+            
+            window.addEventListener('resize', () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            });
+        }
+    </script>
+</body>
+</html>
